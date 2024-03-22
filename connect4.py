@@ -57,6 +57,11 @@ def win_check(board, piece):
 def draw_board(board):
     for i in range(COL_COUNT):
         for j in range(ROW_COUNT):
+                pygame.draw.rect(screen, BLUE, (i*PLAYAREA, j*PLAYAREA+PLAYAREA, PLAYAREA, PLAYAREA))
+                pygame.draw.circle(screen, BLACK, (int(i*PLAYAREA+PLAYAREA/2), int(j*PLAYAREA+PLAYAREA+PLAYAREA/2)), RADIUS)
+
+    for i in range(COL_COUNT):
+        for j in range(ROW_COUNT):
             if board[j][i] == 1:
                 pygame.draw.circle(screen, RED, (int(i*PLAYAREA+PLAYAREA/2), height-int(j*PLAYAREA+PLAYAREA/2)), RADIUS)
             elif board[j][i] == 2:
