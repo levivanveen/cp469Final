@@ -4,11 +4,23 @@ import sys
 import math
 import random
 
+PLAYAREA = 100 #Size of a given slot in the board
+
+# Load images
+RED_IMG = pygame.image.load('red.png')
+YELLOW_IMG = pygame.image.load('yellow.png')
+
+# Scale images to match your cell size (minus a small margin if you like)
+cell_margin = 10  # Adjust as needed for aesthetics
+RED_IMG = pygame.transform.scale(RED_IMG, (PLAYAREA - cell_margin, PLAYAREA - cell_margin))
+YELLOW_IMG = pygame.transform.scale(YELLOW_IMG, (PLAYAREA - cell_margin, PLAYAREA - cell_margin))
+
 #Colours for board and pieces
 BLUE = (0, 0, 255)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
 BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
 
 #Board Sizing
 ROW_COUNT = 6
@@ -23,6 +35,51 @@ PLAYER_PIECE = 1
 AI_PIECE = 2
 #Window to check fo spaces and check for win or next move
 WINDOW_LENGTH = 4
+
+def main_menu(screen):
+    difficulty = "Medium"  # Default difficulty
+    board_size = "Default"  # Default board size
+    menu = True
+    while menu:
+        screen.fill(BLACK)  # Background color of the menu
+        font = pygame.font.SysFont("monospace", 50)
+
+        # Render the menu options
+        title = font.render("Connect Four", True, WHITE)
+        play_button = font.render("Play", True, WHITE)
+        difficulty_text = font.render(f"Difficulty: {difficulty}", True, WHITE)
+        board_size_text = font.render(f"Board Size: {board_size}", True, WHITE)
+        exit_button = font.render("Exit", True, WHITE)
+
+        # Positioning the text
+        screen.blit(title, (width // 2 - title.get_width() // 2, 100))
+        screen.blit(play_button, (width // 2 - play_button.get_width() // 2, 200))
+        screen.blit(difficulty_text, (width // 2 - difficulty_text.get_width() // 2, 300))
+        screen.blit(board_size_text, (width // 2 - board_size_text.get_width() // 2, 400))
+        screen.blit(exit_button, (width // 2 - exit_button.get_width() // 2, 500))
+
+        # Handle events and selection
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse = pygame.mouse.get_pos()
+                # Play button
+                if width // 2 - play_button.get_width() // 2 < mouse[0] < width // 2 + play_button.get_width() // 2 and 200 < mouse[1] < 250:
+                    menu = False
+                # Difficulty selection
+                elif width // 2 - difficulty_text.get_width() // 2 < mouse[0] < width // 2 + difficulty_text.get_width() // 2 and 300 < mouse[1] < 350:
+                    difficulty = "Easy" if difficulty == "Medium" else "Medium" if difficulty == "Hard" else "Hard"
+                # Board size selection
+                elif width // 2 - board_size_text.get_width() // 2 < mouse[0] < width // 2 + board_size_text.get_width() // 2 and 400 < mouse[1] < 450:
+                    board_size = "Small" if board_size == "Default" else "Default" if board_size == "Large" else "Large"
+                # Exit button
+                elif width // 2 - exit_button.get_width() // 2 < mouse[0] < width // 2 + exit_button.get_width() // 2 and 500 < mouse[1] < 550:
+                    pygame.quit()
+                    quit()
+        pygame.display.update()
+    return difficulty, board_size
 
 def create_board():
     board = np.zeros((ROW_COUNT, COL_COUNT))
@@ -67,19 +124,34 @@ def win_check(board, piece):
         for j in range(ROW_COUNT):
             if board[j][i] == piece and board[j-1][i+1] == piece and board[j-2][i+2] == piece and board[j-3][i+3] == piece:
                 return True
-            
+
+        
 def draw_board(board):
+    
     for i in range(COL_COUNT):
         for j in range(ROW_COUNT):
                 pygame.draw.rect(screen, BLUE, (i*PLAYAREA, j*PLAYAREA+PLAYAREA, PLAYAREA, PLAYAREA))
                 pygame.draw.circle(screen, BLACK, (int(i*PLAYAREA+PLAYAREA/2), int(j*PLAYAREA+PLAYAREA+PLAYAREA/2)), RADIUS)
 
+
     for i in range(COL_COUNT):
         for j in range(ROW_COUNT):
             if board[j][i] == 1:
-                pygame.draw.circle(screen, RED, (int(i*PLAYAREA+PLAYAREA/2), height-int(j*PLAYAREA+PLAYAREA/2)), RADIUS)
+                #pygame.draw.circle(screen, RED, (int(i*PLAYAREA+PLAYAREA/2), height-int(j*PLAYAREA+PLAYAREA/2)), RADIUS)
+
+                # Calculate the position for the piece image
+                pos_x = int(i * PLAYAREA + PLAYAREA / 2 - RED_IMG.get_width() / 2)
+                pos_y = height - int(j * PLAYAREA + PLAYAREA / 2 + RED_IMG.get_height() / 2)
+                screen.blit(RED_IMG, (pos_x, pos_y))
+
             elif board[j][i] == 2:
-                pygame.draw.circle(screen, YELLOW, (int(i*PLAYAREA+PLAYAREA/2), height-int(j*PLAYAREA+PLAYAREA/2)), RADIUS)
+                #pygame.draw.circle(screen, YELLOW, (int(i*PLAYAREA+PLAYAREA/2), height-int(j*PLAYAREA+PLAYAREA/2)), RADIUS)
+                 
+                # Calculate the position for the piece image
+                pos_x = int(i * PLAYAREA + PLAYAREA / 2 - YELLOW_IMG.get_width() / 2)
+                pos_y = height - int(j * PLAYAREA + PLAYAREA / 2 + YELLOW_IMG.get_height() / 2)
+                screen.blit(YELLOW_IMG, (pos_x, pos_y))
+
     pygame.display.update()
 
 #Looks at the current window and evaluates what the best options are
@@ -201,25 +273,46 @@ def get_valid_locations(board):
     return valid_loc
 
 
-board = create_board()
-print_board(board)
 game_over = False
 turn = random.randint(PLAYER, AI)
 pygame.init()
 
-PLAYAREA = 100 #Size of a given slot in the board
+width = 7 * PLAYAREA
+screen = pygame.display.set_mode((800, 600))
+difficulty, board_size = main_menu(screen)
+
+if difficulty == "Easy":
+    depth = 1
+elif difficulty == "Medium":
+    depth = 3
+else:
+    depth = 6
+
+if board_size == "Small":
+    ROW_COUNT, COL_COUNT = 5, 6
+elif board_size == "Default":
+    ROW_COUNT, COL_COUNT = 6, 7
+else:
+    ROW_COUNT, COL_COUNT = 7, 8
 
 width = COL_COUNT * PLAYAREA
 height = (ROW_COUNT+1) * PLAYAREA
 size = (width, height)
+screen = pygame.display.set_mode(size)
 
 RADIUS = int(PLAYAREA/2 - 5)
-
-screen = pygame.display.set_mode(size)
+board = create_board()
+print_board(board)
 draw_board(board)
 pygame.display.update()
 
 font = pygame.font.SysFont("monospace", 75, bold = True)
+pygame.display.set_caption("Connect Four")
+
+addSFX = pygame.mixer.Sound('addSFX.mp3')
+pygame.mixer.music.load('background.mp3')
+pygame.mixer.music.play(-1)  # Play the music indefinitely
+
 
 while not game_over:
     for event in pygame.event.get():
@@ -227,10 +320,14 @@ while not game_over:
             sys.exit()
 
         if event.type == pygame.MOUSEMOTION:
+            # Clear the top area where the piece is displayed
             pygame.draw.rect(screen, BLACK, (0, 0, width, PLAYAREA))
             posx = event.pos[0]
             if turn == PLAYER:
-                pygame.draw.circle(screen, RED, (posx, int(PLAYAREA/2)), RADIUS)
+                # Center the RED_IMG around the mouse cursor
+                piece_center_x = posx - RED_IMG.get_width() // 2
+                # Assuming the height of RED_IMG is not more than PLAYAREA
+                screen.blit(RED_IMG, (piece_center_x, (PLAYAREA - RED_IMG.get_height()) // 2))
         pygame.display.update()
 
         if event.type == pygame.MOUSEBUTTONDOWN: #Player Turn
@@ -242,10 +339,19 @@ while not game_over:
                 if is_valid(board, col):
                     row = next_row(board, col)
                     add_piece(board, row, col, PLAYER_PIECE)
+                    addSFX.play()
 
                     if win_check(board, PLAYER_PIECE):
-                        label = font.render("Red wins!!", 1, RED)
-                        screen.blit(label, (130, 10))
+                        pygame.mixer.music.load('winSFX.mp3')
+                        pygame.mixer.music.play(-1)  # Play the music indefinitely
+                        label = font.render("You Win!!", True, RED)
+                        label_rect = label.get_rect()
+
+                        # Set the center of the rectangle to the center of the screen
+                        label_rect.center = (width // 2, PLAYAREA // 2)
+
+                        # Blit the label at the center
+                        screen.blit(label, label_rect)
                         game_over = True
                     
                     turn += 1
@@ -255,15 +361,23 @@ while not game_over:
                     draw_board(board)
             #AI Turn
     if turn == AI and not game_over:
-        col, minimax_score = minimax(board, 2, -math.inf, math.inf, True)
+        col, minimax_score = minimax(board, depth, -math.inf, math.inf, True)
 
         if is_valid(board, col):
             row = next_row(board, col)
             add_piece(board, row, col, AI_PIECE)
 
             if win_check(board, AI_PIECE):
-                label = font.render("Yellow wins!!", 1, YELLOW)
-                screen.blit(label, (130, 10))
+                pygame.mixer.music.load('loseSFX.mp3')
+                pygame.mixer.music.play(-1)  # Play the music indefinitely
+                label = font.render("You Lose!!", True, YELLOW)
+                label_rect = label.get_rect()
+
+                # Set the center of the rectangle to the center of the screen
+                label_rect.center = (width // 2, PLAYAREA // 2)
+
+                # Blit the label at the center
+                screen.blit(label, label_rect)
                 game_over = True
             print_board(board)
             draw_board(board)
@@ -272,4 +386,4 @@ while not game_over:
             turn = turn % 2
 
     if game_over:
-        pygame.time.wait(2500)
+        pygame.time.wait(5000)
