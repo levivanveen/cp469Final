@@ -9,6 +9,8 @@ PLAYAREA = 100 #Size of a given slot in the board
 # Load images
 RED_IMG = pygame.image.load('red.png')
 YELLOW_IMG = pygame.image.load('yellow.png')
+BACKGROUND = pygame.image.load('mainMenu.png')
+
 
 # Scale images to match your cell size (minus a small margin if you like)
 cell_margin = 10  # Adjust as needed for aesthetics
@@ -17,8 +19,11 @@ YELLOW_IMG = pygame.transform.scale(YELLOW_IMG, (PLAYAREA - cell_margin, PLAYARE
 
 #Colours for board and pieces
 BLUE = (0, 0, 255)
+BLUE2 = (0, 0, 255)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
+GREEN = (7, 240, 111)
+GREEN2 = (7, 145, 69)
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
@@ -40,20 +45,34 @@ def main_menu(screen):
     difficulty = "Medium"  # Default difficulty
     board_size = "Default"  # Default board size
     menu = True
+    color = GREEN
+    # Get the size of the image
+
+    screen = pygame.display.set_mode((680, 680))
     while menu:
-        screen.fill(BLACK)  # Background color of the menu
-        font = pygame.font.SysFont("monospace", 50)
+        screen.blit(BACKGROUND, (0, 0))
+         
+        #font = pygame.font.SysFont("monospace", 50)
+        font = pygame.font.Font("JungleAdventurer.ttf", 50)
 
         # Render the menu options
-        title = font.render("Connect Four", True, WHITE)
-        play_button = font.render("Play", True, WHITE)
-        difficulty_text = font.render(f"Difficulty: {difficulty}", True, WHITE)
-        board_size_text = font.render(f"Board Size: {board_size}", True, WHITE)
-        exit_button = font.render("Exit", True, WHITE)
+        title = font.render("Connect Four!", True, (176, 16, 157))
+        play_button = font.render("Play", True, BLACK)
+
+        if (difficulty == "Medium"):
+            color = YELLOW
+        elif(difficulty == "Hard"):
+            color = RED
+        else:
+             color = GREEN
+
+        difficulty_text = font.render(f"Difficulty: {difficulty}", True, color)
+        board_size_text = font.render(f"Board Size: {board_size}", True, BLACK)
+        exit_button = font.render("Exit", True, RED)
 
         # Positioning the text
-        screen.blit(title, (width // 2 - title.get_width() // 2, 100))
-        screen.blit(play_button, (width // 2 - play_button.get_width() // 2, 200))
+        screen.blit(title, (width // 2 - title.get_width() // 2, 130))
+        screen.blit(play_button, (width // 2 - play_button.get_width() // 2, 230))
         screen.blit(difficulty_text, (width // 2 - difficulty_text.get_width() // 2, 300))
         screen.blit(board_size_text, (width // 2 - board_size_text.get_width() // 2, 400))
         screen.blit(exit_button, (width // 2 - exit_button.get_width() // 2, 500))
@@ -66,7 +85,7 @@ def main_menu(screen):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse = pygame.mouse.get_pos()
                 # Play button
-                if width // 2 - play_button.get_width() // 2 < mouse[0] < width // 2 + play_button.get_width() // 2 and 200 < mouse[1] < 250:
+                if width // 2 - play_button.get_width() // 2 < mouse[0] < width // 2 + play_button.get_width() // 2 and 230 < mouse[1] < 250:
                     menu = False
                 # Difficulty selection
                 elif width // 2 - difficulty_text.get_width() // 2 < mouse[0] < width // 2 + difficulty_text.get_width() // 2 and 300 < mouse[1] < 350:
@@ -127,10 +146,12 @@ def win_check(board, piece):
 
         
 def draw_board(board):
-    
+    screen.blit(BOARD_IMG, (0, PLAYAREA))
     for i in range(COL_COUNT):
         for j in range(ROW_COUNT):
-                pygame.draw.rect(screen, BLUE, (i*PLAYAREA, j*PLAYAREA+PLAYAREA, PLAYAREA, PLAYAREA))
+                
+                 
+                #pygame.draw.rect(screen, BLUE, (i*PLAYAREA, j*PLAYAREA+PLAYAREA, PLAYAREA, PLAYAREA))
                 pygame.draw.circle(screen, BLACK, (int(i*PLAYAREA+PLAYAREA/2), int(j*PLAYAREA+PLAYAREA+PLAYAREA/2)), RADIUS)
 
 
@@ -295,6 +316,9 @@ elif board_size == "Default":
 else:
     ROW_COUNT, COL_COUNT = 7, 8
 
+BOARD_IMG = pygame.image.load('board3.png')
+BOARD_IMG = pygame.transform.scale(BOARD_IMG, (COL_COUNT * PLAYAREA, ROW_COUNT * PLAYAREA))
+
 width = COL_COUNT * PLAYAREA
 height = (ROW_COUNT+1) * PLAYAREA
 size = (width, height)
@@ -306,7 +330,7 @@ print_board(board)
 draw_board(board)
 pygame.display.update()
 
-font = pygame.font.SysFont("monospace", 75, bold = True)
+font = pygame.font.SysFont("JungleAdventurer.ttf", 75)
 pygame.display.set_caption("Connect Four")
 
 addSFX = pygame.mixer.Sound('addSFX.mp3')
