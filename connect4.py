@@ -6,9 +6,13 @@ import random
 
 PLAYAREA = 100 #Size of a given slot in the board
 
+pygame.mixer.pre_init(44100, 16, 2, 4096) #frequency, size, channels, buffersize
+pygame.init() #turn all of pygame on.
+
 # Load images
 RED_IMG = pygame.image.load('red.png')
 YELLOW_IMG = pygame.image.load('yellow.png')
+GREEN_IMG = pygame.image.load('green.png')
 BACKGROUND = pygame.image.load('mainMenu.png')
 
 
@@ -16,6 +20,7 @@ BACKGROUND = pygame.image.load('mainMenu.png')
 cell_margin = 10  # Adjust as needed for aesthetics
 RED_IMG = pygame.transform.scale(RED_IMG, (PLAYAREA - cell_margin, PLAYAREA - cell_margin))
 YELLOW_IMG = pygame.transform.scale(YELLOW_IMG, (PLAYAREA - cell_margin, PLAYAREA - cell_margin))
+GREEN_IMG = pygame.transform.scale(GREEN_IMG, (PLAYAREA - cell_margin, PLAYAREA - cell_margin))
 
 #Colours for board and pieces
 BLUE = (0, 0, 255)
@@ -38,6 +43,7 @@ AI = 1
 EMPTY = 0
 PLAYER_PIECE = 1
 AI_PIECE = 2
+WINNING_PIECE = 3
 #Window to check fo spaces and check for win or next move
 WINDOW_LENGTH = 4
 
@@ -103,12 +109,15 @@ def main_menu(screen):
 def create_board():
     board = np.zeros((ROW_COUNT, COL_COUNT))
     return board
+
 #Drops piece into given board either 1 for player or 2 for AI
 def add_piece(board, row, col, piece):
     board[row][col] = piece
+    
 #Checks if the decided spot is a valid location
 def is_valid(board, col):
     return board[ROW_COUNT-1][col] == 0
+
 #Assures we are looking at the next open space in a colum
 def next_row(board, col):
     for i in range(ROW_COUNT):
@@ -172,6 +181,14 @@ def draw_board(board):
                 pos_x = int(i * PLAYAREA + PLAYAREA / 2 - YELLOW_IMG.get_width() / 2)
                 pos_y = height - int(j * PLAYAREA + PLAYAREA / 2 + YELLOW_IMG.get_height() / 2)
                 screen.blit(YELLOW_IMG, (pos_x, pos_y))
+                
+            elif board[j][i] == 3:
+                #pygame.draw.circle(screen, YELLOW, (int(i*PLAYAREA+PLAYAREA/2), height-int(j*PLAYAREA+PLAYAREA/2)), RADIUS)
+                 
+                # Calculate the position for the piece image
+                pos_x = int(i * PLAYAREA + PLAYAREA / 2 - GREEN_IMG.get_width() / 2)
+                pos_y = height - int(j * PLAYAREA + PLAYAREA / 2 + GREEN_IMG.get_height() / 2)
+                screen.blit(GREEN_IMG, (pos_x, pos_y))
 
     pygame.display.update()
 
@@ -189,6 +206,7 @@ def evaluate_window(window, piece):
         
     if window.count(piece) == 4:
         score += 500
+        
     elif window.count(piece) == 3 and window.count(EMPTY) == 1:
         score += 10
     elif window.count(piece) == 2 and window.count(EMPTY) == 2:
@@ -239,6 +257,51 @@ def score_position(board, piece):
 #When a game is won
 def terminal_node(board):
      return win_check(board, PLAYER_PIECE) or win_check(board, AI_PIECE) or len(get_valid_locations(board)) == 0
+ 
+def color_winning_pieces(board, piece):
+    #Horizontal wim
+    for i in range(COL_COUNT-3):
+        for j in range(ROW_COUNT):
+            if board[j][i] == piece and board[j][i+1] == piece and board[j][i+2] == piece and board[j][i+3] == piece:
+                board[j][i] = WINNING_PIECE
+                board[j][i+1] = WINNING_PIECE
+                board[j][i+2] = WINNING_PIECE
+                board[j][i+3] = WINNING_PIECE
+                draw_board(board)
+                return
+            
+    #Vertical Wim
+    for i in range(COL_COUNT):
+        for j in range(ROW_COUNT-3):
+            if board[j][i] == piece and board[j+1][i] == piece and board[j+2][i] == piece and board[j+3][i] == piece:
+                board[j][i] = WINNING_PIECE
+                board[j+1][i] = WINNING_PIECE
+                board[j+2][i] = WINNING_PIECE
+                board[j+3][i] = WINNING_PIECE
+                draw_board(board)
+                return
+            
+    #+ Slope
+    for i in range(COL_COUNT-3):
+        for j in range(ROW_COUNT-3):
+            if board[j][i] == piece and board[j+1][i+1] == piece and board[j+2][i+2] == piece and board[j+3][i+3] == piece:
+                board[j][i] = WINNING_PIECE
+                board[j+1][i+1] = WINNING_PIECE
+                board[j+2][i+2] = WINNING_PIECE
+                board[j+3][i+3] = WINNING_PIECE
+                draw_board(board)
+                return
+            
+    #- Slope
+    for i in range(COL_COUNT-3):
+        for j in range(ROW_COUNT):
+            if board[j][i] == piece and board[j-1][i+1] == piece and board[j-2][i+2] == piece and board[j-3][i+3] == piece:
+                board[j][i] = WINNING_PIECE
+                board[j-1][i+1] = WINNING_PIECE
+                board[j-2][i+2] = WINNING_PIECE
+                board[j-3][i+3] = WINNING_PIECE
+                draw_board(board)
+                return
 
 #Recursivly checks for best possible moves in a tree of a given depth and ignores loss cases using alpha beta pruning
 def minimax(board, depth, alpha, beta, maximizingPlayer):
@@ -366,6 +429,7 @@ while not game_over:
                     addSFX.play()
 
                     if win_check(board, PLAYER_PIECE):
+                        color_winning_pieces(board, PLAYER_PIECE)
                         pygame.mixer.music.load('winSFX.mp3')
                         pygame.mixer.music.play(-1)  # Play the music indefinitely
                         label = font.render("You Win!!", True, RED)
@@ -392,6 +456,7 @@ while not game_over:
             add_piece(board, row, col, AI_PIECE)
 
             if win_check(board, AI_PIECE):
+                color_winning_pieces(board, AI_PIECE)
                 pygame.mixer.music.load('loseSFX.mp3')
                 pygame.mixer.music.play(-1)  # Play the music indefinitely
                 label = font.render("You Lose!!", True, YELLOW)
