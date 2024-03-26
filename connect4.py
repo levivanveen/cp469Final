@@ -12,7 +12,8 @@ pygame.init() #turn all of pygame on.
 # Load images
 RED_IMG = pygame.image.load('red.png')
 YELLOW_IMG = pygame.image.load('yellow.png')
-GREEN_IMG = pygame.image.load('green.png')
+RED_WINNER_IMG = pygame.image.load('red_winner.png')
+YELLOW_WINNER_IMG = pygame.image.load('green.png')
 BACKGROUND = pygame.image.load('mainMenu.png')
 
 
@@ -20,7 +21,8 @@ BACKGROUND = pygame.image.load('mainMenu.png')
 cell_margin = 10  # Adjust as needed for aesthetics
 RED_IMG = pygame.transform.scale(RED_IMG, (PLAYAREA - cell_margin, PLAYAREA - cell_margin))
 YELLOW_IMG = pygame.transform.scale(YELLOW_IMG, (PLAYAREA - cell_margin, PLAYAREA - cell_margin))
-GREEN_IMG = pygame.transform.scale(GREEN_IMG, (PLAYAREA - cell_margin, PLAYAREA - cell_margin))
+YELLOW_WINNER_IMG = pygame.transform.scale(YELLOW_WINNER_IMG, (PLAYAREA - cell_margin, PLAYAREA - cell_margin))
+RED_WINNER_IMG = pygame.transform.scale(RED_WINNER_IMG, (PLAYAREA - cell_margin, PLAYAREA - cell_margin))
 
 #Colours for board and pieces
 BLUE = (0, 0, 255)
@@ -43,7 +45,6 @@ AI = 1
 EMPTY = 0
 PLAYER_PIECE = 1
 AI_PIECE = 2
-WINNING_PIECE = 3
 #Window to check fo spaces and check for win or next move
 WINDOW_LENGTH = 4
 
@@ -182,13 +183,21 @@ def draw_board(board):
                 pos_y = height - int(j * PLAYAREA + PLAYAREA / 2 + YELLOW_IMG.get_height() / 2)
                 screen.blit(YELLOW_IMG, (pos_x, pos_y))
                 
-            elif board[j][i] == 3:
+            elif board[j][i] == 3: # RED WINNER
                 #pygame.draw.circle(screen, YELLOW, (int(i*PLAYAREA+PLAYAREA/2), height-int(j*PLAYAREA+PLAYAREA/2)), RADIUS)
                  
                 # Calculate the position for the piece image
-                pos_x = int(i * PLAYAREA + PLAYAREA / 2 - GREEN_IMG.get_width() / 2)
-                pos_y = height - int(j * PLAYAREA + PLAYAREA / 2 + GREEN_IMG.get_height() / 2)
-                screen.blit(GREEN_IMG, (pos_x, pos_y))
+                pos_x = int(i * PLAYAREA + PLAYAREA / 2 - RED_WINNER_IMG.get_width() / 2)
+                pos_y = height - int(j * PLAYAREA + PLAYAREA / 2 + RED_WINNER_IMG.get_height() / 2)
+                screen.blit(RED_WINNER_IMG, (pos_x, pos_y))
+                
+            elif board[j][i] == 4: # YELLOW WINNER
+                #pygame.draw.circle(screen, YELLOW, (int(i*PLAYAREA+PLAYAREA/2), height-int(j*PLAYAREA+PLAYAREA/2)), RADIUS)
+                 
+                # Calculate the position for the piece image
+                pos_x = int(i * PLAYAREA + PLAYAREA / 2 - YELLOW_WINNER_IMG.get_width() / 2)
+                pos_y = height - int(j * PLAYAREA + PLAYAREA / 2 + YELLOW_WINNER_IMG.get_height() / 2)
+                screen.blit(YELLOW_WINNER_IMG, (pos_x, pos_y))
 
     pygame.display.update()
 
@@ -263,10 +272,10 @@ def color_winning_pieces(board, piece):
     for i in range(COL_COUNT-3):
         for j in range(ROW_COUNT):
             if board[j][i] == piece and board[j][i+1] == piece and board[j][i+2] == piece and board[j][i+3] == piece:
-                board[j][i] = WINNING_PIECE
-                board[j][i+1] = WINNING_PIECE
-                board[j][i+2] = WINNING_PIECE
-                board[j][i+3] = WINNING_PIECE
+                board[j][i] = piece + 2
+                board[j][i+1] = piece + 2
+                board[j][i+2] = piece + 2
+                board[j][i+3] = piece + 2
                 draw_board(board)
                 return
             
@@ -274,10 +283,10 @@ def color_winning_pieces(board, piece):
     for i in range(COL_COUNT):
         for j in range(ROW_COUNT-3):
             if board[j][i] == piece and board[j+1][i] == piece and board[j+2][i] == piece and board[j+3][i] == piece:
-                board[j][i] = WINNING_PIECE
-                board[j+1][i] = WINNING_PIECE
-                board[j+2][i] = WINNING_PIECE
-                board[j+3][i] = WINNING_PIECE
+                board[j][i] = piece + 2
+                board[j+1][i] = piece + 2
+                board[j+2][i] = piece + 2
+                board[j+3][i] = piece + 2
                 draw_board(board)
                 return
             
@@ -285,10 +294,10 @@ def color_winning_pieces(board, piece):
     for i in range(COL_COUNT-3):
         for j in range(ROW_COUNT-3):
             if board[j][i] == piece and board[j+1][i+1] == piece and board[j+2][i+2] == piece and board[j+3][i+3] == piece:
-                board[j][i] = WINNING_PIECE
-                board[j+1][i+1] = WINNING_PIECE
-                board[j+2][i+2] = WINNING_PIECE
-                board[j+3][i+3] = WINNING_PIECE
+                board[j][i] = piece + 2
+                board[j+1][i+1] = piece + 2
+                board[j+2][i+2] = piece + 2
+                board[j+3][i+3] = piece + 2
                 draw_board(board)
                 return
             
@@ -296,10 +305,10 @@ def color_winning_pieces(board, piece):
     for i in range(COL_COUNT-3):
         for j in range(ROW_COUNT):
             if board[j][i] == piece and board[j-1][i+1] == piece and board[j-2][i+2] == piece and board[j-3][i+3] == piece:
-                board[j][i] = WINNING_PIECE
-                board[j-1][i+1] = WINNING_PIECE
-                board[j-2][i+2] = WINNING_PIECE
-                board[j-3][i+3] = WINNING_PIECE
+                board[j][i] = piece + 2
+                board[j-1][i+1] = piece + 2
+                board[j-2][i+2] = piece + 2
+                board[j-3][i+3] = piece + 2
                 draw_board(board)
                 return
 
