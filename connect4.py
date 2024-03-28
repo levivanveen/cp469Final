@@ -12,8 +12,8 @@ pygame.init() #turn all of pygame on.
 # Load images
 RED_IMG = pygame.image.load('red.png')
 YELLOW_IMG = pygame.image.load('yellow.png')
-RED_WINNER_IMG = pygame.image.load('red_winner.png')
-YELLOW_WINNER_IMG = pygame.image.load('green.png')
+RED_WINNER_IMG = pygame.image.load('red_winner2.png')
+YELLOW_WINNER_IMG = pygame.image.load('yellow_winner2.png')
 BACKGROUND = pygame.image.load('mainMenu.png')
 
 
@@ -92,7 +92,7 @@ def main_menu(screen):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse = pygame.mouse.get_pos()
                 # Play button
-                if width // 2 - play_button.get_width() // 2 < mouse[0] < width // 2 + play_button.get_width() // 2 and 230 < mouse[1] < 250:
+                if width // 2 - play_button.get_width() // 2 < mouse[0] < width // 2 + play_button.get_width() // 2 and 230 < mouse[1] < 280:
                     menu = False
                 # Difficulty selection
                 elif width // 2 - difficulty_text.get_width() // 2 < mouse[0] < width // 2 + difficulty_text.get_width() // 2 and 300 < mouse[1] < 350:
