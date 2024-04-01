@@ -402,6 +402,7 @@ def ai_move(ai_piece, depth):
             color_winning_pieces(board, ai_piece)
             global game_over
             game_over = True
+
         draw_board(board)
 
 
@@ -436,13 +437,16 @@ pygame.display.update()
 font = pygame.font.SysFont("JungleAdventurer.ttf", 75)
 pygame.display.set_caption("Connect Four")
 
+addSFX = pygame.mixer.Sound('addSFX.mp3')
+pygame.mixer.music.load('background.mp3')
+pygame.mixer.music.play(-1)  # Play the music indefinitely
 
 while not game_over:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
         
-        if ai_vs_ai:
+        if ai_vs_ai and not game_over:
             pygame.time.wait(1000)
             current_depth = get_depth(ai1_difficulty) if turn == PLAYER else get_depth(ai2_difficulty)
             current_piece = PLAYER_PIECE if turn == PLAYER else AI_PIECE
@@ -469,9 +473,12 @@ while not game_over:
                 if is_valid(board, col):
                     row = next_row(board, col)
                     add_piece(board, row, col, PLAYER_PIECE)
+                    addSFX.play()
 
                     if win_check(board, PLAYER_PIECE):
                         color_winning_pieces(board, PLAYER_PIECE)
+                        pygame.mixer.music.load('winSFX.mp3')
+                        pygame.mixer.music.play(-1)  # Play the music indefinitely
                         label = font.render("You Win!!", True, RED)
                         label_rect = label.get_rect()
 
@@ -498,6 +505,8 @@ while not game_over:
 
                 if win_check(board, AI_PIECE):
                     color_winning_pieces(board, AI_PIECE)
+                    pygame.mixer.music.load('loseSFX.mp3')
+                    pygame.mixer.music.play(-1)  # Play the music indefinitely
                     label = font.render("You Lose!!", True, YELLOW)
                     label_rect = label.get_rect()
 
