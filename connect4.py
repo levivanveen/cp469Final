@@ -15,7 +15,7 @@ YELLOW_IMG = pygame.image.load('yellow.png')
 RED_WINNER_IMG = pygame.image.load('red_winner2.png')
 YELLOW_WINNER_IMG = pygame.image.load('yellow_winner2.png')
 BACKGROUND = pygame.image.load('mainMenu.png')
-
+BACKGROUND = pygame.transform.scale(BACKGROUND, (800, 800))
 
 # Scale images to match your cell size (minus a small margin if you like)
 cell_margin = 10  # Adjust as needed for aesthetics
@@ -48,6 +48,8 @@ AI_PIECE = 2
 #Window to check fo spaces and check for win or next move
 WINDOW_LENGTH = 4
 
+DIM = 800
+
 def main_menu(screen):
     difficulty = "Medium"  # Default difficulty
     board_size = "Default"  # Default board size
@@ -58,7 +60,7 @@ def main_menu(screen):
     color = GREEN
     # Get the size of the image
 
-    screen = pygame.display.set_mode((680, 680))
+    screen = pygame.display.set_mode((DIM, DIM))
     while menu:
         screen.blit(BACKGROUND, (0, 0))
          
@@ -79,21 +81,21 @@ def main_menu(screen):
         difficulty_text = font.render(f"Difficulty: {difficulty}", True, color)
         board_size_text = font.render(f"Board Size: {board_size}", True, BLACK)
         ai_vs_ai_button = font.render(f"AI vs AI: {'On' if ai_vs_ai else 'Off'}", True, color)
-        ai_vs_ai_button_rect = ai_vs_ai_button.get_rect(center=(680 // 2, 450))
+        ai_vs_ai_button_rect = ai_vs_ai_button.get_rect(center=(DIM // 2, 450))
         ai1_difficulty_text = font.render(f"AI 1 Difficulty: {ai1_difficulty}", True, color)
-        ai1_difficulty_text_rect = ai1_difficulty_text.get_rect(center=(680 // 2, 500))
+        ai1_difficulty_text_rect = ai1_difficulty_text.get_rect(center=(DIM // 2, 500))
 
         # Render AI 2 difficulty button and get its rectangle
         ai2_difficulty_text = font.render(f"AI 2 Difficulty: {ai2_difficulty}", True, color)
-        ai2_difficulty_text_rect = ai2_difficulty_text.get_rect(center=(680 // 2, 550))
+        ai2_difficulty_text_rect = ai2_difficulty_text.get_rect(center=(DIM // 2, 550))
         exit_button = font.render("Exit", True, RED)
 
         # Positioning the text
-        screen.blit(title, (width // 2 - title.get_width() // 2, 130))
-        screen.blit(play_button, (width // 2 - play_button.get_width() // 2, 230))
-        screen.blit(difficulty_text, (width // 2 - difficulty_text.get_width() // 2, 300))
-        screen.blit(board_size_text, (width // 2 - board_size_text.get_width() // 2, 350))
-        screen.blit(exit_button, (width // 2 - exit_button.get_width() // 2, 500))
+        screen.blit(title, (DIM // 2 - title.get_width() // 2, 130))
+        screen.blit(play_button, (DIM // 2 - play_button.get_width() // 2, 230))
+        screen.blit(difficulty_text, (DIM // 2 - difficulty_text.get_width() // 2, 300))
+        screen.blit(board_size_text, (DIM // 2 - board_size_text.get_width() // 2, 350))
+        screen.blit(exit_button, (DIM // 2 - exit_button.get_width() // 2, 600))
         screen.blit(ai_vs_ai_button, ai_vs_ai_button_rect)
         screen.blit(ai1_difficulty_text, ai1_difficulty_text_rect)
         screen.blit(ai2_difficulty_text, ai2_difficulty_text_rect)
@@ -116,16 +118,16 @@ def main_menu(screen):
                     # Change AI 2 difficulty and re-render the button
                     ai2_difficulty = "Easy" if ai2_difficulty == "Medium" else "Medium" if ai2_difficulty == "Hard" else "Hard"
                 # Play button
-                if width // 2 - play_button.get_width() // 2 < mouse[0] < width // 2 + play_button.get_width() // 2 and 230 < mouse[1] < 280:
+                if DIM // 2 - play_button.get_width() // 2 < mouse[0] < DIM // 2 + play_button.get_width() // 2 and 230 < mouse[1] < 280:
                     menu = False
                 # Difficulty selection
-                elif width // 2 - difficulty_text.get_width() // 2 < mouse[0] < width // 2 + difficulty_text.get_width() // 2 and 300 < mouse[1] < 350:
+                elif DIM // 2 - difficulty_text.get_width() // 2 < mouse[0] < DIM // 2 + difficulty_text.get_width() // 2 and 300 < mouse[1] < 350:
                     difficulty = "Easy" if difficulty == "Medium" else "Medium" if difficulty == "Hard" else "Hard"
                 # Board size selection
-                elif width // 2 - board_size_text.get_width() // 2 < mouse[0] < width // 2 + board_size_text.get_width() // 2 and 400 < mouse[1] < 450:
+                elif DIM // 2 - board_size_text.get_width() // 2 < mouse[0] < DIM // 2 + board_size_text.get_width() // 2 and 350 < mouse[1] < 400:
                     board_size = "Small" if board_size == "Default" else "Default" if board_size == "Large" else "Large"
                 # Exit button
-                elif width // 2 - exit_button.get_width() // 2 < mouse[0] < width // 2 + exit_button.get_width() // 2 and 500 < mouse[1] < 550:
+                elif DIM // 2 - exit_button.get_width() // 2 < mouse[0] < DIM // 2 + exit_button.get_width() // 2 and 600 < mouse[1] < 650:
                     pygame.quit()
                     quit()
         pygame.display.update()
