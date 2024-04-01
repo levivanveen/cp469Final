@@ -179,6 +179,7 @@ def win_check(board, piece):
         for j in range(ROW_COUNT):
             if board[j][i] == piece and board[j-1][i+1] == piece and board[j-2][i+2] == piece and board[j-3][i+3] == piece:
                 return True
+    return False
 
         
 def draw_board(board):
@@ -230,15 +231,7 @@ def draw_board(board):
 #Looks at the current window and evaluates what the best options are
 def evaluate_window(window, piece):
     score = 0
-    
-    if window.count(EMPTY) == 4:
-        return 0
-    
-    if piece == PLAYER_PIECE:
-        opponent_piece = PLAYER_PIECE
-    else:
-        opponent_piece = AI_PIECE
-        
+    opp_piece = PLAYER_PIECE if piece == AI_PIECE else AI_PIECE
     if window.count(piece) == 4:
         score += 500
         
@@ -247,9 +240,9 @@ def evaluate_window(window, piece):
     elif window.count(piece) == 2 and window.count(EMPTY) == 2:
         score += 3
     
-    if window.count(opponent_piece) == 3 and window.count(EMPTY) == 1:
+    if window.count(opp_piece) == 3 and window.count(EMPTY) == 1:
         score -= 8
-    elif window.count(opponent_piece) == 2 and window.count(EMPTY) == 2:
+    elif window.count(opp_piece) == 2 and window.count(EMPTY) == 2:
         score -= 4
         
     return score
@@ -398,12 +391,23 @@ def get_depth(difficulty):
         return 3
     else:
         return 6
+    
+def ai_move(ai_piece, depth):
+    col, minimax_score = minimax(board, depth, -math.inf, math.inf, True)
+
+    if is_valid(board, col):
+        row = next_row(board, col)
+        add_piece(board, row, col, ai_piece)
+        if win_check(board, ai_piece):
+            color_winning_pieces(board, ai_piece)
+            global game_over
+            game_over = True
+        draw_board(board)
 
 
 game_over = False
 turn = random.randint(PLAYER, AI)
 pygame.init()
-
 width = 7 * PLAYAREA
 screen = pygame.display.set_mode((800, 600))
 difficulty, board_size, ai_vs_ai, ai1_difficulty, ai2_difficulty = main_menu(screen)
@@ -432,10 +436,6 @@ pygame.display.update()
 font = pygame.font.SysFont("JungleAdventurer.ttf", 75)
 pygame.display.set_caption("Connect Four")
 
-addSFX = pygame.mixer.Sound('addSFX.mp3')
-pygame.mixer.music.load('background.mp3')
-pygame.mixer.music.play(-1)  # Play the music indefinitely
-
 
 while not game_over:
     for event in pygame.event.get():
@@ -443,36 +443,13 @@ while not game_over:
             sys.exit()
         
         if ai_vs_ai:
-            pygame.time.wait(500)
-            # AI 1's Turn
-            if turn == PLAYER:  # Use PLAYER as AI 1
-            # Determine the minimax depth based on AI 1's difficulty
-                depth = get_depth(ai1_difficulty)
-                col, minimax_score = minimax(board, depth, -math.inf, math.inf, True)
-
-                if is_valid(board, col):
-                    row = next_row(board, col)
-                    add_piece(board, row, col, PLAYER_PIECE)
-                    if win_check(board, PLAYER_PIECE):
-                        color_winning_pieces(board, PLAYER_PIECE)
-                        game_over = True
-                    draw_board(board)
-                    turn = AI
-
-        # AI 2's Turn
-            elif turn == AI:  # Use AI as AI 2
-            # Determine the minimax depth based on AI 2's difficulty
-                depth = get_depth(ai2_difficulty)
-                col, minimax_score = minimax(board, depth, -math.inf, math.inf, True)
-
-                if is_valid(board, col):
-                    row = next_row(board, col)
-                    add_piece(board, row, col, PLAYER_PIECE)
-                    if win_check(board, AI_PIECE):
-                        color_winning_pieces(board, AI_PIECE)
-                        game_over = True
-                    draw_board(board)
-                    turn = PLAYER
+            pygame.time.wait(1000)
+            current_depth = get_depth(ai1_difficulty) if turn == PLAYER else get_depth(ai2_difficulty)
+            current_piece = PLAYER_PIECE if turn == PLAYER else AI_PIECE
+            ai_move(current_piece, current_depth)
+            turn = AI if turn == PLAYER else PLAYER
+            draw_board(board)
+            pygame.display.update()
         else:           
             if event.type == pygame.MOUSEMOTION and turn == PLAYER:
                 # Clear the top area where the piece is displayed
@@ -492,12 +469,9 @@ while not game_over:
                 if is_valid(board, col):
                     row = next_row(board, col)
                     add_piece(board, row, col, PLAYER_PIECE)
-                    addSFX.play()
 
                     if win_check(board, PLAYER_PIECE):
                         color_winning_pieces(board, PLAYER_PIECE)
-                        pygame.mixer.music.load('winSFX.mp3')
-                        pygame.mixer.music.play(-1)  # Play the music indefinitely
                         label = font.render("You Win!!", True, RED)
                         label_rect = label.get_rect()
 
@@ -508,7 +482,8 @@ while not game_over:
                         screen.blit(label, label_rect)
                         game_over = True
                         
-                    turn = AI
+                    turn += 1
+                    turn = turn % 2
 
                     print_board(board)
                     draw_board(board)
@@ -523,8 +498,6 @@ while not game_over:
 
                 if win_check(board, AI_PIECE):
                     color_winning_pieces(board, AI_PIECE)
-                    pygame.mixer.music.load('loseSFX.mp3')
-                    pygame.mixer.music.play(-1)  # Play the music indefinitely
                     label = font.render("You Lose!!", True, YELLOW)
                     label_rect = label.get_rect()
 
