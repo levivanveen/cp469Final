@@ -51,6 +51,9 @@ WINDOW_LENGTH = 4
 def main_menu(screen):
     difficulty = "Medium"  # Default difficulty
     board_size = "Default"  # Default board size
+    ai1_difficulty = "Medium"
+    ai2_difficulty = "Medium"
+    ai_vs_ai = False
     menu = True
     color = GREEN
     # Get the size of the image
@@ -75,14 +78,25 @@ def main_menu(screen):
 
         difficulty_text = font.render(f"Difficulty: {difficulty}", True, color)
         board_size_text = font.render(f"Board Size: {board_size}", True, BLACK)
+        ai_vs_ai_button = font.render(f"AI vs AI: {'On' if ai_vs_ai else 'Off'}", True, color)
+        ai_vs_ai_button_rect = ai_vs_ai_button.get_rect(center=(680 // 2, 450))
+        ai1_difficulty_text = font.render(f"AI 1 Difficulty: {ai1_difficulty}", True, color)
+        ai1_difficulty_text_rect = ai1_difficulty_text.get_rect(center=(680 // 2, 500))
+
+        # Render AI 2 difficulty button and get its rectangle
+        ai2_difficulty_text = font.render(f"AI 2 Difficulty: {ai2_difficulty}", True, color)
+        ai2_difficulty_text_rect = ai2_difficulty_text.get_rect(center=(680 // 2, 550))
         exit_button = font.render("Exit", True, RED)
 
         # Positioning the text
         screen.blit(title, (width // 2 - title.get_width() // 2, 130))
         screen.blit(play_button, (width // 2 - play_button.get_width() // 2, 230))
         screen.blit(difficulty_text, (width // 2 - difficulty_text.get_width() // 2, 300))
-        screen.blit(board_size_text, (width // 2 - board_size_text.get_width() // 2, 400))
+        screen.blit(board_size_text, (width // 2 - board_size_text.get_width() // 2, 350))
         screen.blit(exit_button, (width // 2 - exit_button.get_width() // 2, 500))
+        screen.blit(ai_vs_ai_button, ai_vs_ai_button_rect)
+        screen.blit(ai1_difficulty_text, ai1_difficulty_text_rect)
+        screen.blit(ai2_difficulty_text, ai2_difficulty_text_rect)
 
         # Handle events and selection
         for event in pygame.event.get():
@@ -91,6 +105,16 @@ def main_menu(screen):
                 quit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse = pygame.mouse.get_pos()
+                if ai_vs_ai_button_rect.collidepoint(mouse):
+                    ai_vs_ai = not ai_vs_ai
+                    ai_vs_ai_button = font.render(f"AI vs AI: {'On' if ai_vs_ai else 'Off'}", True, color)
+                elif ai1_difficulty_text_rect.collidepoint(mouse):
+                    # Change AI 1 difficulty and re-render the button
+                    ai1_difficulty = "Easy" if ai1_difficulty == "Medium" else "Medium" if ai1_difficulty == "Hard" else "Hard"
+
+                elif ai2_difficulty_text_rect.collidepoint(mouse):
+                    # Change AI 2 difficulty and re-render the button
+                    ai2_difficulty = "Easy" if ai2_difficulty == "Medium" else "Medium" if ai2_difficulty == "Hard" else "Hard"
                 # Play button
                 if width // 2 - play_button.get_width() // 2 < mouse[0] < width // 2 + play_button.get_width() // 2 and 230 < mouse[1] < 280:
                     menu = False
@@ -105,7 +129,7 @@ def main_menu(screen):
                     pygame.quit()
                     quit()
         pygame.display.update()
-    return difficulty, board_size
+    return difficulty, board_size, ai_vs_ai, ai1_difficulty, ai2_difficulty
 
 def create_board():
     board = np.zeros((ROW_COUNT, COL_COUNT))
@@ -365,6 +389,14 @@ def get_valid_locations(board):
             valid_loc.append(col)
     return valid_loc
 
+def get_depth(difficulty):
+    if difficulty == "Easy":
+        return 1
+    elif difficulty == "Medium":
+        return 3
+    else:
+        return 6
+
 
 game_over = False
 turn = random.randint(PLAYER, AI)
@@ -372,14 +404,7 @@ pygame.init()
 
 width = 7 * PLAYAREA
 screen = pygame.display.set_mode((800, 600))
-difficulty, board_size = main_menu(screen)
-
-if difficulty == "Easy":
-    depth = 1
-elif difficulty == "Medium":
-    depth = 3
-else:
-    depth = 6
+difficulty, board_size, ai_vs_ai, ai1_difficulty, ai2_difficulty = main_menu(screen)
 
 if board_size == "Small":
     ROW_COUNT, COL_COUNT = 5, 6
@@ -414,21 +439,51 @@ while not game_over:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
+        
+        if ai_vs_ai:
+            pygame.time.wait(500)
+            # AI 1's Turn
+            if turn == PLAYER:  # Use PLAYER as AI 1
+            # Determine the minimax depth based on AI 1's difficulty
+                depth = get_depth(ai1_difficulty)
+                col, minimax_score = minimax(board, depth, -math.inf, math.inf, True)
 
-        if event.type == pygame.MOUSEMOTION:
-            # Clear the top area where the piece is displayed
-            pygame.draw.rect(screen, BLACK, (0, 0, width, PLAYAREA))
-            posx = event.pos[0]
-            if turn == PLAYER:
+                if is_valid(board, col):
+                    row = next_row(board, col)
+                    add_piece(board, row, col, PLAYER_PIECE)
+                    if win_check(board, PLAYER_PIECE):
+                        color_winning_pieces(board, PLAYER_PIECE)
+                        game_over = True
+                    draw_board(board)
+                    turn = AI
+
+        # AI 2's Turn
+            elif turn == AI:  # Use AI as AI 2
+            # Determine the minimax depth based on AI 2's difficulty
+                depth = get_depth(ai2_difficulty)
+                col, minimax_score = minimax(board, depth, -math.inf, math.inf, True)
+
+                if is_valid(board, col):
+                    row = next_row(board, col)
+                    add_piece(board, row, col, PLAYER_PIECE)
+                    if win_check(board, AI_PIECE):
+                        color_winning_pieces(board, AI_PIECE)
+                        game_over = True
+                    draw_board(board)
+                    turn = PLAYER
+        else:           
+            if event.type == pygame.MOUSEMOTION and turn == PLAYER:
+                # Clear the top area where the piece is displayed
+                pygame.draw.rect(screen, BLACK, (0, 0, width, PLAYAREA))
+                posx = event.pos[0]
                 # Center the RED_IMG around the mouse cursor
                 piece_center_x = posx - RED_IMG.get_width() // 2
                 # Assuming the height of RED_IMG is not more than PLAYAREA
                 screen.blit(RED_IMG, (piece_center_x, (PLAYAREA - RED_IMG.get_height()) // 2))
-        pygame.display.update()
+                pygame.display.update()
 
-        if event.type == pygame.MOUSEBUTTONDOWN: #Player Turn
-            pygame.draw.rect(screen, BLACK, (0, 0, width, PLAYAREA))
-            if turn == PLAYER:
+            if event.type == pygame.MOUSEBUTTONDOWN and turn == PLAYER: #Player Turn
+                pygame.draw.rect(screen, BLACK, (0, 0, width, PLAYAREA))
                 posx = event.pos[0]
                 col = int(math.floor(posx/PLAYAREA))
 
@@ -450,38 +505,39 @@ while not game_over:
                         # Blit the label at the center
                         screen.blit(label, label_rect)
                         game_over = True
-                    
-                    turn += 1
-                    turn = turn % 2
+                        
+                    turn = AI
 
                     print_board(board)
                     draw_board(board)
-            #AI Turn
-    if turn == AI and not game_over:
-        col, minimax_score = minimax(board, depth, -math.inf, math.inf, True)
+                #AI Turn
+        if turn == AI and not game_over:
+            depth = get_depth(difficulty)
+            col, minimax_score = minimax(board, depth, -math.inf, math.inf, True)
 
-        if is_valid(board, col):
-            row = next_row(board, col)
-            add_piece(board, row, col, AI_PIECE)
+            if is_valid(board, col):
+                row = next_row(board, col)
+                add_piece(board, row, col, AI_PIECE)
 
-            if win_check(board, AI_PIECE):
-                color_winning_pieces(board, AI_PIECE)
-                pygame.mixer.music.load('loseSFX.mp3')
-                pygame.mixer.music.play(-1)  # Play the music indefinitely
-                label = font.render("You Lose!!", True, YELLOW)
-                label_rect = label.get_rect()
+                if win_check(board, AI_PIECE):
+                    color_winning_pieces(board, AI_PIECE)
+                    pygame.mixer.music.load('loseSFX.mp3')
+                    pygame.mixer.music.play(-1)  # Play the music indefinitely
+                    label = font.render("You Lose!!", True, YELLOW)
+                    label_rect = label.get_rect()
 
-                # Set the center of the rectangle to the center of the screen
-                label_rect.center = (width // 2, PLAYAREA // 2)
+                    # Set the center of the rectangle to the center of the screen
+                    label_rect.center = (width // 2, PLAYAREA // 2)
 
-                # Blit the label at the center
-                screen.blit(label, label_rect)
-                game_over = True
-            print_board(board)
-            draw_board(board)
-            #Changes the turn from AI to player or vise versa
-            turn += 1
-            turn = turn % 2
+                    # Blit the label at the center
+                    screen.blit(label, label_rect)
+                    game_over = True
+                turn = PLAYER
+
+                print_board(board)
+                draw_board(board)
+                #Changes the turn from AI to player or vise versa
 
     if game_over:
+        pygame.display.update()
         pygame.time.wait(5000)
