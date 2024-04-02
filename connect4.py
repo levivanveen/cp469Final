@@ -176,7 +176,7 @@ def win_check(board, piece):
             
     #- Slope
     for i in range(COL_COUNT-3):
-        for j in range(ROW_COUNT):
+        for j in range(3, ROW_COUNT):
             if board[j][i] == piece and board[j-1][i+1] == piece and board[j-2][i+2] == piece and board[j-3][i+3] == piece:
                 return True
     return False
