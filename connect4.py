@@ -58,6 +58,8 @@ def main_menu(screen):
     ai_vs_ai = False
     menu = True
     color = GREEN
+    turn = PLAYER
+
     # Get the size of the image
 
     screen = pygame.display.set_mode((DIM, DIM))
@@ -78,6 +80,10 @@ def main_menu(screen):
         else:
              color = GREEN
 
+        # Render starting player selection button
+        starting_player_button = font.render(f"Starting Player: {'Player' if turn == PLAYER else 'AI'}", True, color)
+        starting_player_button_rect = starting_player_button.get_rect(center=(DIM // 2, 550))
+
         difficulty_text = font.render(f"Difficulty: {difficulty}", True, color)
         board_size_text = font.render(f"Board Size: {board_size}", True, BLACK)
         ai_vs_ai_button = font.render(f"AI vs AI: {'On' if ai_vs_ai else 'Off'}", True, color)
@@ -97,10 +103,10 @@ def main_menu(screen):
         screen.blit(board_size_text, (DIM // 2 - board_size_text.get_width() // 2, 350))
         screen.blit(exit_button, (DIM // 2 - exit_button.get_width() // 2, 600))
         screen.blit(ai_vs_ai_button, ai_vs_ai_button_rect)
-        screen.blit(ai1_difficulty_text, ai1_difficulty_text_rect)
-        screen.blit(ai2_difficulty_text, ai2_difficulty_text_rect)
+        #screen.blit(ai1_difficulty_text, ai1_difficulty_text_rect)
+        #screen.blit(ai2_difficulty_text, ai2_difficulty_text_rect)
+        screen.blit(starting_player_button, starting_player_button_rect)
 
-        # Handle events and selection
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -117,6 +123,17 @@ def main_menu(screen):
                 elif ai2_difficulty_text_rect.collidepoint(mouse):
                     # Change AI 2 difficulty and re-render the button
                     ai2_difficulty = "Easy" if ai2_difficulty == "Medium" else "Medium" if ai2_difficulty == "Hard" else "Hard"
+
+                # Handle mouse click on starting player selection button
+                elif starting_player_button_rect.collidepoint(mouse):
+                    print("Starting player button clicked")
+                    print(turn)
+                    # Toggle starting player
+                    turn = AI if turn == PLAYER else PLAYER
+                    print(turn)
+                    # Update starting player text
+                    starting_player_button = font.render(f"Starting Player: {'Player' if turn == PLAYER else 'AI'}", True, color)
+
                 # Play button
                 if DIM // 2 - play_button.get_width() // 2 < mouse[0] < DIM // 2 + play_button.get_width() // 2 and 230 < mouse[1] < 280:
                     menu = False
@@ -131,7 +148,7 @@ def main_menu(screen):
                     pygame.quit()
                     quit()
         pygame.display.update()
-    return difficulty, board_size, ai_vs_ai, ai1_difficulty, ai2_difficulty
+    return difficulty, board_size, ai_vs_ai, ai1_difficulty, ai2_difficulty, turn
 
 def create_board():
     board = np.zeros((ROW_COUNT, COL_COUNT))
@@ -176,7 +193,7 @@ def win_check(board, piece):
             
     #- Slope
     for i in range(COL_COUNT-3):
-        for j in range(ROW_COUNT):
+        for j in range(3, ROW_COUNT):
             if board[j][i] == piece and board[j-1][i+1] == piece and board[j-2][i+2] == piece and board[j-3][i+3] == piece:
                 return True
     return False
@@ -194,7 +211,7 @@ def draw_board(board):
 
     for i in range(COL_COUNT):
         for j in range(ROW_COUNT):
-            if board[j][i] == 1:
+            if board[j][i] == 2:
                 #pygame.draw.circle(screen, RED, (int(i*PLAYAREA+PLAYAREA/2), height-int(j*PLAYAREA+PLAYAREA/2)), RADIUS)
 
                 # Calculate the position for the piece image
@@ -202,7 +219,7 @@ def draw_board(board):
                 pos_y = height - int(j * PLAYAREA + PLAYAREA / 2 + RED_IMG.get_height() / 2)
                 screen.blit(RED_IMG, (pos_x, pos_y))
 
-            elif board[j][i] == 2:
+            elif board[j][i] == 1:
                 #pygame.draw.circle(screen, YELLOW, (int(i*PLAYAREA+PLAYAREA/2), height-int(j*PLAYAREA+PLAYAREA/2)), RADIUS)
                  
                 # Calculate the position for the piece image
@@ -210,7 +227,7 @@ def draw_board(board):
                 pos_y = height - int(j * PLAYAREA + PLAYAREA / 2 + YELLOW_IMG.get_height() / 2)
                 screen.blit(YELLOW_IMG, (pos_x, pos_y))
                 
-            elif board[j][i] == 3: # RED WINNER
+            elif board[j][i] == 4: # RED WINNER
                 #pygame.draw.circle(screen, YELLOW, (int(i*PLAYAREA+PLAYAREA/2), height-int(j*PLAYAREA+PLAYAREA/2)), RADIUS)
                  
                 # Calculate the position for the piece image
@@ -218,7 +235,7 @@ def draw_board(board):
                 pos_y = height - int(j * PLAYAREA + PLAYAREA / 2 + RED_WINNER_IMG.get_height() / 2)
                 screen.blit(RED_WINNER_IMG, (pos_x, pos_y))
                 
-            elif board[j][i] == 4: # YELLOW WINNER
+            elif board[j][i] == 3: # YELLOW WINNER
                 #pygame.draw.circle(screen, YELLOW, (int(i*PLAYAREA+PLAYAREA/2), height-int(j*PLAYAREA+PLAYAREA/2)), RADIUS)
                  
                 # Calculate the position for the piece image
@@ -407,11 +424,11 @@ def ai_move(ai_piece, depth):
 
 
 game_over = False
-turn = random.randint(PLAYER, AI)
+#turn = random.randint(PLAYER, AI)
 pygame.init()
 width = 7 * PLAYAREA
 screen = pygame.display.set_mode((800, 600))
-difficulty, board_size, ai_vs_ai, ai1_difficulty, ai2_difficulty = main_menu(screen)
+difficulty, board_size, ai_vs_ai, ai1_difficulty, ai2_difficulty, turn = main_menu(screen)
 
 if board_size == "Small":
     ROW_COUNT, COL_COUNT = 5, 6
@@ -438,8 +455,8 @@ font = pygame.font.SysFont("JungleAdventurer.ttf", 75)
 pygame.display.set_caption("Connect Four")
 
 addSFX = pygame.mixer.Sound('addSFX.mp3')
-pygame.mixer.music.load('background.mp3')
-pygame.mixer.music.play(-1)  # Play the music indefinitely
+#pygame.mixer.music.load('background.mp3')
+#pygame.mixer.music.play(-1)  # Play the music indefinitely
 
 while not game_over:
     for event in pygame.event.get():
@@ -460,9 +477,9 @@ while not game_over:
                 pygame.draw.rect(screen, BLACK, (0, 0, width, PLAYAREA))
                 posx = event.pos[0]
                 # Center the RED_IMG around the mouse cursor
-                piece_center_x = posx - RED_IMG.get_width() // 2
+                piece_center_x = posx - YELLOW_IMG.get_width() // 2
                 # Assuming the height of RED_IMG is not more than PLAYAREA
-                screen.blit(RED_IMG, (piece_center_x, (PLAYAREA - RED_IMG.get_height()) // 2))
+                screen.blit(YELLOW_IMG, (piece_center_x, (PLAYAREA - YELLOW_IMG.get_height()) // 2))
                 pygame.display.update()
 
             if event.type == pygame.MOUSEBUTTONDOWN and turn == PLAYER: #Player Turn
@@ -476,6 +493,17 @@ while not game_over:
                     addSFX.play()
 
                     if win_check(board, PLAYER_PIECE):
+                        with open("results.txt", "r") as file:
+                            results = file.readlines()
+                        if difficulty == "Easy":
+                            results[1] = str(int(results[1]) + 1) + "\n"
+                        elif difficulty == "Medium":
+                            results[3] = str(int(results[3]) + 1) + "\n"
+                        elif difficulty == "Hard":
+                            results[5] = str(int(results[5]) + 1) + "\n"
+                        with open("results.txt", "w") as file:
+                            file.writelines(results)
+
                         color_winning_pieces(board, PLAYER_PIECE)
                         pygame.mixer.music.load('winSFX.mp3')
                         pygame.mixer.music.play(-1)  # Play the music indefinitely
@@ -504,6 +532,17 @@ while not game_over:
                 add_piece(board, row, col, AI_PIECE)
 
                 if win_check(board, AI_PIECE):
+                    with open("results.txt", "r") as file:
+                            results = file.readlines()
+                    if difficulty == "Easy":
+                        results[0] = str(int(results[0]) + 1) + "\n"
+                    elif difficulty == "Medium":
+                        results[2] = str(int(results[2]) + 1) + "\n"
+                    elif difficulty == "Hard":
+                        results[4] = str(int(results[4]) + 1) + "\n"
+                    with open("results.txt", "w") as file:
+                        file.writelines(results)
+
                     color_winning_pieces(board, AI_PIECE)
                     pygame.mixer.music.load('loseSFX.mp3')
                     pygame.mixer.music.play(-1)  # Play the music indefinitely

@@ -1,0 +1,16 @@
+10
+10
+6
+12
+11
+9
+
+
+Easy win
+Easy loss
+Medium win
+medium loss
+Hard win
+hard loss
+
+2 medium tie
