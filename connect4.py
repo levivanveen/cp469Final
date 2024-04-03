@@ -275,7 +275,7 @@ def score_position(board, piece):
 			score += evaluate_window(window, piece)
 
     ## Score negative sloped diagonal
-	for r in range(ROW_COUNT-3):
+	for r in range(3, ROW_COUNT-3):
 		for c in range(COL_COUNT-3):
 			window = [board[r+3-i][c+i] for i in range(WINDOW_LENGTH)]
 			score += evaluate_window(window, piece)
@@ -322,7 +322,7 @@ def color_winning_pieces(board, piece):
             
     #- Slope
     for i in range(COL_COUNT-3):
-        for j in range(ROW_COUNT):
+        for j in range(3, ROW_COUNT):
             if board[j][i] == piece and board[j-1][i+1] == piece and board[j-2][i+2] == piece and board[j-3][i+3] == piece:
                 board[j][i] = piece + 2
                 board[j-1][i+1] = piece + 2
